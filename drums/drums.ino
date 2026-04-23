@@ -5,11 +5,17 @@ Servo snareServo;
 Servo hihatServo;
 
 const int kickPin = 9;
-const int snarePin = 10;
+const int snarePin = 6;
 const int hihatPin = 11;
 
 int bpm = 140;
+
+// One quarter note
 int beatInterval = 60000 / bpm;
+
+// If you want kick-hat-snare-hat as evenly spaced steps,
+// each step should be an eighth note:
+int stepInterval = beatInterval / 2;
 
 // Kick
 int kickRest = 20;
@@ -45,13 +51,23 @@ void hitKick() {
 }
 
 void hitSnare() {
-  snareServo.write(snareHit);
+  for (int pos = snareRest; pos <= snareHit; pos += 5) {
+    snareServo.write(pos);
+    delay(10);
+  }
+
   delay(snareHold);
+
+  for (int pos = snareHit; pos >= snareRest; pos -= 5) {
+    snareServo.write(pos);
+    delay(10);
+  }
+
+  delay(50);
   snareServo.write(snareRest);
 }
 
 void hitHiHat() {
-  // move up
   for (int pos = hihatRest; pos <= hihatHit; pos += 5) {
     hihatServo.write(pos);
     delay(10);
@@ -59,7 +75,6 @@ void hitHiHat() {
 
   delay(hihatHold);
 
-  // move back down
   for (int pos = hihatHit; pos >= hihatRest; pos -= 5) {
     hihatServo.write(pos);
     delay(10);
@@ -86,9 +101,17 @@ void setup() {
 void loop() {
   Serial.println("kick");
   hitKick();
-  delay(beatInterval);
+  delay(stepInterval);
 
   Serial.println("hihat");
   hitHiHat();
-  delay(beatInterval);
+  delay(stepInterval);
+
+  Serial.println("snare");
+  hitSnare();
+  delay(stepInterval);
+
+  Serial.println("hihat");
+  hitHiHat();
+  delay(stepInterval);
 }
